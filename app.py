@@ -2,7 +2,9 @@ from flask import Flask, request, jsonify, render_template, send_from_directory
 import pandas as pd
 
 # Load the DataFrame with SKU information
-df = pd.read_csv('SKU_description.csv')
+df = pd.read_csv('SKU_Description.csv')
+
+print(df)
 
 def search_sku_description(search_term, column, match_type="exact"):
     """
@@ -26,30 +28,30 @@ def search_sku_description(search_term, column, match_type="exact"):
     return filtered_df
 
 
-app = Flask(__name__)
-
-@app.route('/search', methods=['GET'])
-def search():
-    term = request.args.get('term', '')
-    column = request.args.get('column', 'SKU')
-    match_type = request.args.get('match_type', 'exact')
-
-    if column not in ['SKU', 'Description']:
-        return jsonify({'error': "Invalid column. Use 'SKU' or 'Description'."}), 400
-
-    try:
-        result = search_sku_description(term, column, match_type)
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 400
-
-    if result.empty:
-        return jsonify({'error': 'No matches found'}), 404
-
-    return jsonify(result.to_dict(orient='records'))
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True, port=5003)
+# app = Flask(__name__)
+#
+# @app.route('/search', methods=['GET'])
+# def search():
+#     term = request.args.get('term', '')
+#     column = request.args.get('column', 'SKU')
+#     match_type = request.args.get('match_type', 'exact')
+#
+#     if column not in ['SKU', 'Description']:
+#         return jsonify({'error': "Invalid column. Use 'SKU' or 'Description'."}), 400
+#
+#     try:
+#         result = search_sku_description(term, column, match_type)
+#     except ValueError as e:
+#         return jsonify({'error': str(e)}), 400
+#
+#     if result.empty:
+#         return jsonify({'error': 'No matches found'}), 404
+#
+#     return jsonify(result.to_dict(orient='records'))
+#
+# @app.route('/')
+# def index():
+#     return render_template('index.html')
+#
+# if __name__ == '__main__':
+#     app.run(host='0.0.0.0', debug=True, port=5003)
