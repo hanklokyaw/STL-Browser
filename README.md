@@ -30,9 +30,9 @@ python app.py
 
 ## Additional Information
 
-Thanks to the THREE team members who make this app possible to display STL files on the browser. If the user is interested, they could visit the THREE library for more information.
+We extend our gratitude to the THREE team for their invaluable contribution in enabling this application to display STL files directly in the browser. Users interested in exploring more about this technology can visit the THREE.js library for further details.
 
 
 ## Customizing the Application
 
-Users can modify the file names and descriptions associated with the STL files by editing the SKU_Description.csv file. Ensure that the changes accurately point to the correct STL filenames to maintain functionality.
+To customize the application, users can edit the SKU_Description.csv file to modify file names and descriptions associated with the STL files. It is essential to ensure that the updated entries accurately correspond to the correct STL filenames to maintain the application's functionality.
