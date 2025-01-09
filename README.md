@@ -1,4 +1,4 @@
-STL Browser App
+### STL Browser App
 
 This Flask application allows users to search for 3D models based on SKU or descriptions and preview them in the browser.
 
