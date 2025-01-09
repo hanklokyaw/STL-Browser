@@ -13,7 +13,7 @@ This Flask application allows users to search for 3D models based on SKU or desc
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/stl-browser.git
+git clone https://github.com/hanklokyaw/STL-Browser.git
 cd stl-browser
 ```
 
