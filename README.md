@@ -26,9 +26,12 @@ pip install -r requirements.txt
 python app.py
 ```
 
+
 Additional Information
 
 Thanks to the THREE team members who make this app possible to display STL files on the browser. If the user is interested, they could visit the THREE library for more information.
+
+
 
 Customizing the Application
 
