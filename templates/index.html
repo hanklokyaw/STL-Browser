@@ -103,12 +103,13 @@
             <option value="Description">Description</option>
         </select>
         <select id="matchTypeSelect" class="input-field">
-            <option value="exact">Exact</option>
             <option value="wildcard">Wildcard</option>
+            <option value="exact">Exact</option>
         </select>
         <input type="text" id="searchInput" placeholder="Enter search term..." class="input-field">
         <button onclick="searchModels()">Search</button>
     </div>
+    <div><h4>Example: Try "car" for SKU that includes "car".</h4></div>
     <div class="result" id="resultDiv"></div>
 </div>
 

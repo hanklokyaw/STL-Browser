@@ -4,22 +4,12 @@ import pandas as pd
 # Load the DataFrame with SKU information
 df = pd.read_csv('SKU_Description.csv')
 
-print(df)
-
 # Choose "exact" or "wildcard" for search option
 SEARCH_METHOD = "wildcard"
 
 def search_sku_description(search_term, column, match_type="exact"):
     """
     Search the DataFrame based on the specified column and match type.
-
-    Args:
-        search_term (str): Term to search for.
-        column (str): Column to search in ("SKU" or "Description").
-        match_type (str): Match type, "exact" or "wildcard".
-
-    Returns:
-        DataFrame: Filtered DataFrame with matching rows.
     """
     search_term = search_term.strip().lower()
     if match_type == "exact":
@@ -29,10 +19,6 @@ def search_sku_description(search_term, column, match_type="exact"):
     else:
         raise ValueError("Invalid match type. Use 'exact' or 'wildcard'.")
     return filtered_df
-
-search_df = search_sku_description("tesla", "Description", match_type=SEARCH_METHOD)
-print(search_df)
-
 
 app = Flask(__name__)
 
@@ -54,6 +40,13 @@ def search():
         return jsonify({'error': 'No matches found'}), 404
 
     return jsonify(result.to_dict(orient='records'))
+
+@app.route('/stl/<path:filename>')
+def serve_stl(filename):
+    """
+    Serve STL files from the 'stl' folder.
+    """
+    return send_from_directory('../STL-Browser - Copy/stl', filename)
 
 @app.route('/')
 def index():
