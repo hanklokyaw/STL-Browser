@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STL Browser</title>
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+        text-align: center;
+        color: #333;
+    }
+
+    .search-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .input-field {
+        padding: 10px;
+        margin-right: 10px; /* Add space between components */
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    #columnSelect, #matchTypeSelect {
+        width: 15%;
+    }
+
+    #searchInput {
+        width: 60%;
+    }
+
+    button {
+        display: block;
+        padding: 10px 20px; /* Add horizontal padding for better appearance */
+        background-color: #967708;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-left: 10px; /* Add some space before the button */
+    }
+
+    button:hover {
+        background-color: #AD890A;
+    }
+
+    .result {
+        margin-top: 20px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+
+    td {
+        vertical-align: middle;
+    }
+
+    .modelViewer {
+        width: 100%;
+        height: 200px;
+    }
+    </style>
+    <script src="./static/js/three.min.js"></script>
+    <script src="./static/js/OrbitControls.js"></script>
+    <script src="./static/js/STLLoader.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>STL Browser</h1>
+    <div class="search-bar">
+        <select id="columnSelect" class="input-field">
+            <option value="SKU">SKU</option>
+            <option value="Description">Description</option>
+        </select>
+        <select id="matchTypeSelect" class="input-field">
+            <option value="exact">Exact</option>
+            <option value="wildcard">Wildcard</option>
+        </select>
+        <input type="text" id="searchInput" placeholder="Enter search term..." class="input-field">
+        <button onclick="searchModels()">Search</button>
+    </div>
+    <div class="result" id="resultDiv"></div>
+</div>
+
+    <script>
+        document.getElementById('searchInput').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                searchModels();
+            }
+        });
+
+        function searchModels() {
+            const searchInput = document.getElementById('searchInput').value.trim();
+            const column = document.getElementById('columnSelect').value;
+            const matchType = document.getElementById('matchTypeSelect').value;
+            const resultDiv = document.getElementById('resultDiv');
+
+            if (!resultDiv) {
+                console.error('resultDiv not found');
+                return;
+            }
+
+            resultDiv.innerHTML = ''; // Clear previous results
+
+            fetch(`/search?term=${encodeURIComponent(searchInput)}&column=${column}&match_type=${matchType}`)
+                .then(response => response.json())
+                .then(data => {
+                    let resultHTML = '';
+                    if (data.error) {
+                        resultHTML = `<p>Error: ${data.error}</p>`;
+                    } else {
+                        resultHTML += '<table>';
+                        resultHTML += '<tr><th>SKU</th><th>Description</th><th>3D Model</th></tr>';
+                        data.forEach(row => {
+                            resultHTML += '<tr>';
+                            resultHTML += `<td>${row['SKU']}</td>`;
+                            resultHTML += `<td>${row['Description']}</td>`;
+                            resultHTML += `<td><div id="model-${row['SKU']}" class="modelViewer"></div></td>`;
+                            resultHTML += '</tr>';
+                        });
+                        resultHTML += '</table>';
+                    }
+                    resultDiv.innerHTML = resultHTML;
+
+                    // Now load the models into the viewer after the HTML is updated
+                    data.forEach(row => {
+                        const modelId = `model-${row['SKU']}`;
+                        const modelViewer = document.getElementById(modelId);
+                        if (modelViewer) {
+                            // Only attempt to load the model if the container exists
+                            loadModel(`stl/${row['Filename']}`, modelId);
+                        } else {
+                            console.error(`Model container not found for model ID: ${modelId}`);
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    resultDiv.innerHTML = '<p>Error: Unable to fetch data from server</p>';
+                });
+        }
+
+        function loadModel(modelPath, modelId) {
+            var modelViewer = document.getElementById(modelId);
+
+            if (!modelViewer) {
+                console.error('Model viewer container not found for model ID:', modelId);
+                return;
+            }
+
+            // Check if the STL file exists
+            fetch(modelPath)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('File not found: ' + modelPath);
+                    }
+                    return response.blob(); // Fetch the file as a blob
+                })
+                .then(blob => {
+                    // If the file exists, proceed to load the model
+                    var scene = new THREE.Scene();
+                    var camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+                    var renderer = new THREE.WebGLRenderer();
+                    renderer.setSize(400, 200);
+
+                    modelViewer.style.display = 'flex';
+                    modelViewer.style.justifyContent = 'center';
+                    modelViewer.style.alignItems = 'center';
+                    modelViewer.style.position = 'relative';
+
+                    modelViewer.appendChild(renderer.domElement);
+
+                    var ambientLight = new THREE.AmbientLight(0x404040, 0.3);
+                    scene.add(ambientLight);
+
+                    var directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+                    directionalLight.position.set(5, 5, 5).normalize();
+                    scene.add(directionalLight);
+
+                    var pointLight = new THREE.PointLight(0xffffff, 1, 50);
+                    pointLight.position.set(0, 0, 10);
+                    scene.add(pointLight);
+
+                    // Load the STL model
+                    const loader = new THREE.STLLoader();
+                    loader.load(URL.createObjectURL(blob), function (geometry) {
+                        var material = new THREE.MeshLambertMaterial({ color: 0xFFD700 });
+                        var mesh = new THREE.Mesh(geometry, material);
+                        scene.add(mesh);
+
+                        var box = new THREE.Box3().setFromObject(mesh);
+                        var size = box.getSize(new THREE.Vector3()).length();
+                        var scale = 2 / size;
+                        mesh.scale.set(scale, scale, scale);
+
+                        camera.position.z = 1.3;
+
+                        var controls = new THREE.OrbitControls(camera, renderer.domElement);
+                        controls.enableZoom = true;
+                        controls.enableDamping = true;
+                        controls.dampingFactor = 0.25;
+
+                        var animate = function () {
+                            requestAnimationFrame(animate);
+                            renderer.render(scene, camera);
+                        };
+                        animate();
+                    });
+                })
+                .catch(error => {
+                    console.error(error);
+                    modelViewer.innerHTML = '<p style="color: red;">3D Model not available</p>';
+                });
+        }
+    </script>
+</body>
+</html>
